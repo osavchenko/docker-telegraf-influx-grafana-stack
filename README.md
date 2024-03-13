@@ -1,75 +1,38 @@
-# Example Docker Compose project for Telegraf, InfluxDB and Grafana
+# Example Resource monitoring systems
 
 This an example project to show the TIG (Telegraf, InfluxDB and Grafana) stack.
 
-![Example Screenshot](./example.png?raw=true "Example Screenshot")
-
 ## Start the stack with docker compose
 
-```bash
+```shell
 $ docker-compose up
 ```
 
-## Services and Ports
+## Public services
 
 ### Grafana
 - URL: http://localhost:3000 
 - User: admin 
-- Password: admin 
+- Password: admin
 
-### Telegraf
-- Port: 8125 UDP (StatsD input)
-
-### InfluxDB
-- Port: 8086 (HTTP API)
-- User: admin 
-- Password: admin 
-- Database: influx
-
-
-Run the influx client:
-
-```bash
-$ docker-compose exec influxdb influx -execute 'SHOW DATABASES'
-```
-
-Run the influx interactive console:
-
-```bash
-$ docker-compose exec influxdb influx
-
-Connected to http://localhost:8086 version 1.8.0
-InfluxDB shell version: 1.8.0
->
-```
-
-[Import data from a file with -import](https://docs.influxdata.com/influxdb/v1.8/tools/shell/#import-data-from-a-file-with-import)
-
-```bash
-$ docker-compose exec -w /imports influxdb influx -import -path=data.txt -precision=s
-```
+### nginx
+- URL: http://localhost:8080 
 
 ## Run the PHP Example
 
-The PHP example generates random example metrics. The random metrics are beeing sent via UDP to the telegraf agent using the StatsD protocol.
+There is a Symfony Demo app as an example. To prepare it run next commands:
 
-The telegraf agents aggregates the incoming data and perodically persists the data into the InfluxDB database.
-
-Grafana connects to the InfluxDB database and is able to visualize the incoming data.
-
-```bash
-$ cd php-example
-$ composer install
-$ php example.php
-Sending Random metrics. Use Ctrl+C to stop.
-..........................^C
-Runtime:	0.88382697105408 Seconds
-Ops:		27 
-Ops/s:		30.548965899738 
-Killed by Ctrl+C
+```shell
+docker compose exec php composer install
+docker compose exec php bin/console d:m:m --no-interaction
 ```
 
-## License
+To run the benchmark:
 
-The MIT License (MIT). Please see [License File](LICENSE) for more information.
+```shell
+docker compose exec apache ab -n 100 -c 10 http://nginx/uk/blog/ && \
+    docker compose exec apache ab -n 10 -c 1 http://nginx/uk/blog/ && \
+    docker compose exec apache ab -n 100 -c 25 http://nginx/uk/blog/
+```
 
+To find examples, please check the `metrics-example` folder.
