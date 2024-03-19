@@ -38,13 +38,25 @@ services:
       - mysql_data:/var/lib/mysql:rw
     container_name: prjctr_mysql
 
-  elasticsearch:
-    image: elasticsearch:8.12.2
+  mongodb:
+    image: mongo:7
     env_file:
       - .env
     ports:
+      - '127.0.0.1:${MONGO_PUBLIC_PORT}:27017'
+    volumes:
+      - mongo_data:/data/db:rw
+    container_name: prjctr_mongo
+
+  elasticsearch:
+    image: elasticsearch:8.12.2
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    ports:
       - '127.0.0.1:${ELASTICSEARCH_PUBLIC_PORT}:9200'
     volumes:
+      - ./elasticsearch/elasticsearch.yaml:/usr/share/elasticsearch/config/elasticsearch.yml
       - elasticsearch_data:/usr/share/elasticsearch/data:rw
     container_name: prjctr_elasticsearch
 
@@ -61,6 +73,7 @@ services:
       - php
       - nginx
       - mysql
+      - mongodb
       - elasticsearch
     container_name: prjctr_telegraf
 
@@ -96,6 +109,7 @@ services:
 
 volumes:
   mysql_data: {}
+  mongo_data: {}
   elasticsearch_data: {}
   influxdb_data: {}
   grafana_data: {}
